@@ -1,0 +1,120 @@
+seed: 1234
+output_dir: outputs/exp1_local_frame_tokenizer
+train_mode: pepsage
+
+experiment:
+  variant: local_with_type
+  compression_factor: 1
+  chemistry:
+    distance_weight: 0.50
+    bond_length_weight: 0.25
+    bond_angle_weight: 0.10
+    clash_weight: 0.10
+
+data:
+  batch_size: 32
+  val_batch_size: 32
+  num_workers: 8
+  prefetch_factor: 4
+  pad_to_multiple_of: 8
+  pepsage:
+    train:
+      structure_dir: data/pepsage/crude
+      dataset_dir: data/pepsage/processed
+      name: pep_pocket_train
+      reset: false
+      shuffle: true
+      max_tokens: null
+    val:
+      structure_dir: data/pepsage/crude
+      dataset_dir: data/pepsage/processed
+      name: pep_pocket_test
+      reset: false
+      shuffle: false
+      max_tokens: null
+  general_protein:
+    train:
+      parquet_dir: null
+      data_root: data/general_protein
+      dataset_name: cath
+      split: train
+      max_data: null
+      nan_handling: remove
+      randomly_rotate: true
+      shuffle: true
+      max_tokens: null
+    val:
+      parquet_dir: null
+      data_root: data/general_protein
+      dataset_name: cath
+      split: validation
+      max_data: null
+      nan_handling: remove
+      randomly_rotate: false
+      shuffle: false
+      max_tokens: null
+
+model:
+  residue_vocab_size: 22
+  atom_slot_vocab_size: 16
+  atom_class_vocab_size: 4
+  residue_embed_dim: 32
+  atom_slot_embed_dim: 16
+  atom_class_embed_dim: 8
+  latent_dim: 128
+  model_dim: 128
+  encoder_layers: 4
+  decoder_layers: 6
+  bidirectional: true
+  fused_add_norm: false
+  rms_norm: true
+  quantizer_levels: [4, 4, 4, 4, 4, 4]
+  use_local_frame: true
+  use_residue_type: true
+  use_atom_slot: true
+  use_atom_class: true
+  compression_factor: 1
+
+loss:
+  local_mse_weight: 1.0
+  global_mse_weight: 1.0
+  intra_residue_distance_weight: 0.5
+  bond_length_weight: 0.0
+  bond_angle_weight: 0.0
+  clash_weight: 0.0
+
+optim:
+  lr: 3.0e-4
+  weight_decay: 0.0
+  optimizer: adamw
+  scheduler: cosine
+  max_epochs: 100
+
+validation:
+  heavy_metrics_every_n_epochs: 0
+  heavy_metrics_max_batches: 16
+  run_heavy_metrics_on_epoch_1: false
+
+final_evaluation:
+  enabled: true
+  ckpt_path: best
+  heavy_metrics_max_batches: 0
+  log_prefix: full_eval
+
+trainer:
+  accelerator: auto
+  devices: 1
+  precision: bf16-mixed
+  benchmark: true
+  max_epochs: 100
+  log_every_n_steps: 10
+  enable_progress_bar: true
+  num_sanity_val_steps: 0
+
+stages:
+  pretrain:
+    trainer_overrides:
+      max_epochs: 50
+  finetune:
+    trainer_overrides:
+      max_epochs: 50
