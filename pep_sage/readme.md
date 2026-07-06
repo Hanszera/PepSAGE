@@ -4,7 +4,7 @@
 Enter the project directory:
 
 ```powershell
-cd PepSAGE\discret_token
+cd PepSAGE\pep_sage
 ```
 
 Run training with the default config and an explicit tokenizer checkpoint:

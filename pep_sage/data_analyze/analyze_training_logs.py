@@ -93,11 +93,11 @@ RECON_METRICS = [
     "val/recon_loss_trans",
     "val/recon_loss_rots",
     "val/recon_loss_bb_atom",
-    # exp3-only
+
     "val/recon_loss_seqs",
     "val/recon_loss_torsion",
     "val/recon_loss_angle",
-    # exp4-only
+
     "val/recon_loss_token",
     "val/recon_loss_aa",
     "val/recon_loss_struct",

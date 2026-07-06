@@ -150,16 +150,14 @@ class FlowModel(nn.Module):
             dim=(-1, -2, -3)
         ) / (torch.sum(gen_mask,dim=-1) + 1e-8) # (B,)
         bb_atom_loss = torch.mean(bb_atom_loss)
-        # bb_atom_loss = torch.mean(torch.where(t[:,0]>=0.75,bb_atom_loss,torch.zeros_like(bb_atom_loss))) # penalty for near gt point
+        
 
         # seqs vf loss
         seqs_loss = F.cross_entropy(pred_seqs_1_prob.view(-1,pred_seqs_1_prob.shape[-1]),torch.clamp(seqs_1,0,19).view(-1), reduction='none').view(pred_seqs_1_prob.shape[:-1]) # (N,L), not softmax
         seqs_loss = torch.sum(seqs_loss * gen_mask, dim=-1) / (torch.sum(gen_mask,dim=-1) + 1e-8)
         seqs_loss = torch.mean(seqs_loss)
 
-        # we should not use angle mask, as you dont know aa type when generating
-        # angle_mask_loss = torch.cat([angle_mask,angle_mask],dim=-1) # (B,L,10)
-        # angle vf loss
+        
         angle_mask_loss = torsions_mask.to(batch['aa'].device)
         angle_mask_loss = angle_mask_loss[pred_seqs_1.reshape(-1)].reshape(num_batch,num_res,-1) # (B,L,5)
         angle_mask_loss = torch.cat([angle_mask_loss,angle_mask_loss],dim=-1) # (B,L,10)
@@ -168,7 +166,7 @@ class FlowModel(nn.Module):
         gt_angle_vf_vec = torch.cat([torch.sin(gt_angle_vf),torch.cos(gt_angle_vf)],dim=-1)
         pred_angle_vf = torus.tor_logmap(angles_t, pred_angles_1)
         pred_angle_vf_vec = torch.cat([torch.sin(pred_angle_vf),torch.cos(pred_angle_vf)],dim=-1)
-        # angle_loss = torch.sum(((gt_angle_vf_vec - pred_angle_vf_vec) * norm_scale)**2*gen_mask[...,None],dim=(-1,-2)) / ((torch.sum(gen_mask,dim=-1)) + 1e-8) # (B,)
+
         angle_loss = torch.sum(((gt_angle_vf_vec - pred_angle_vf_vec) * norm_scale)**2*angle_mask_loss,dim=(-1,-2)) / (torch.sum(angle_mask_loss,dim=(-1,-2)) + 1e-8) # (B,)
         angle_loss = torch.mean(angle_loss)
 
@@ -176,7 +174,7 @@ class FlowModel(nn.Module):
         # angle aux loss
         angles_1_vec = torch.cat([torch.sin(angles_1),torch.cos(angles_1)],dim=-1)
         pred_angles_1_vec = torch.cat([torch.sin(pred_angles_1),torch.cos(pred_angles_1)],dim=-1)
-        # torsion_loss = torch.sum((pred_angles_1_vec - angles_1_vec)**2*gen_mask[...,None],dim=(-1,-2)) / (torch.sum(gen_mask,dim=-1) + 1e-8) # (B,)
+        
         torsion_loss = torch.sum((pred_angles_1_vec - angles_1_vec)**2*angle_mask_loss,dim=(-1,-2)) / (torch.sum(angle_mask_loss,dim=(-1,-2)) + 1e-8) # (B,)
         torsion_loss = torch.mean(torsion_loss)
 
@@ -236,7 +234,7 @@ class FlowModel(nn.Module):
         # Set-up time
         ts = torch.linspace(1.e-2, 1.0, num_steps)
         t_1 = ts[0]
-        # prot_traj = [{'rotmats':rotmats_0,'trans':trans_0_c,'seqs':seqs_0,'seqs_simplex':seqs_0_simplex,'rotmats_1':rotmats_1,'trans_1':trans_1-center,'seqs_1':seqs_1}]
+        
         clean_traj = []
         rotmats_t_1, trans_t_1_c, angles_t_1, seqs_t_1, seqs_t_1_simplex = rotmats_0, trans_0_c, angles_0, seqs_0, seqs_0_simplex
 
@@ -247,7 +245,7 @@ class FlowModel(nn.Module):
             pred_rotmats_1, pred_trans_1, pred_angles_1, pred_seqs_1_prob = self.ga_encoder(t, rotmats_t_1, trans_t_1_c, angles_t_1, seqs_t_1, node_embed, edge_embed, batch['generate_mask'].long(), batch['res_mask'].long())
             pred_rotmats_1 = torch.where(batch['generate_mask'][...,None,None],pred_rotmats_1,rotmats_1)
             # trans, move center
-            # pred_trans_1_c,center = self.zero_center_part(pred_trans_1,gen_mask,res_mask)
+            
             pred_trans_1_c = torch.where(batch['generate_mask'][...,None],pred_trans_1,trans_1_c) # move receptor also
             # angles
             pred_angles_1 = torch.where(batch['generate_mask'][...,None],pred_angles_1,angles_1)
@@ -305,7 +303,7 @@ class FlowModel(nn.Module):
         pred_rotmats_1, pred_trans_1, pred_angles_1, pred_seqs_1_prob = self.ga_encoder(t, rotmats_t_1, trans_t_1_c, angles_t_1, seqs_t_1, node_embed, edge_embed, batch['generate_mask'].long(), batch['res_mask'].long())
         pred_rotmats_1 = torch.where(batch['generate_mask'][...,None,None],pred_rotmats_1,rotmats_1)
         # move center
-        # pred_trans_1_c,center = self.zero_center_part(pred_trans_1,gen_mask,res_mask)
+        
         pred_trans_1_c = torch.where(batch['generate_mask'][...,None],pred_trans_1,trans_1_c) # move receptor also
         # angles
         pred_angles_1 = torch.where(batch['generate_mask'][...,None],pred_angles_1,angles_1)
