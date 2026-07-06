@@ -1,0 +1,132 @@
+accounting:
+  checkpoint_dir: ./output/checkpoints
+  dump_config_path: ./output/config.yaml
+  generated_pep_dir: ./output/generated_pep_steps100_samples64
+  logdir: ./output
+  tb_logdir: ./output/tensorboard
+  test_outputs_dir: ./output/test_outputs_steps100_samples64
+  val_outputs_dir: ./output/val_outputs
+  wandb_logdir: ./output
+data:
+  train:
+    dataset_dir: ../data/pepsage/processed
+    name: pep_pocket_train
+    reset: false
+    structure_dir: ../data/pepsage/crude
+    type: peprec
+  val:
+    dataset_dir: ../data/pepsage/processed
+    name: pep_pocket_test
+    reset: false
+    structure_dir: ../data/pepsage/crude
+    type: peprec
+dynamics:
+  beta1_token: 1.2
+  destination_prediction: true
+  discrete_steps: 1000
+  lambda1_rot: 10
+  model:
+    encoder:
+      edge_embed_size: 64
+      ipa:
+        c_hidden: 128
+        c_s: 128
+        c_z: 64
+        no_heads: 8
+        no_qk_points: 8
+        no_v_points: 12
+        num_blocks: 6
+        seq_tfmr_num_heads: 4
+        seq_tfmr_num_layers: 2
+        stop_grad: false
+      node_embed_size: 128
+    interpolant:
+      min_t: 0.01
+      rots:
+        exp_rate: 10
+        sample_schedule: exp
+        train_schedule: linear
+      sample_rots: true
+      sample_tokens: true
+      sample_trans: true
+      sampling:
+        num_timesteps: 100
+      self_condition: false
+      t_normalization_clip: 0.9
+      trans:
+        sample_schedule: linear
+        sigma: 1.0
+        train_schedule: linear
+    tokenizer_bridge:
+      checkpoint_path: /home/admin001/PepSAGE\local_frame_struct_tokenizer\outputs\exp1_local_frame_tokenizer\compression\local_no_type_k1\pepsage\checkpoints\last.ckpt
+      loss:
+        bond_angle_weight: 0.0
+        bond_length_weight: 0.0
+        clash_weight: 0.0
+        global_mse_weight: 1.0
+        intra_residue_distance_weight: 0.5
+        local_mse_weight: 1.0
+      model:
+        bidirectional: true
+        compression_factor: 1
+        decoder_layers: 6
+        encoder_layers: 4
+        fused_add_norm: false
+        latent_dim: 128
+        model_dim: 128
+        quantizer_levels:
+        - 4
+        - 4
+        - 4
+        - 4
+        - 4
+        - 4
+        rms_norm: true
+        use_atom_class: false
+        use_atom_slot: false
+        use_local_frame: true
+        use_residue_type: false
+  sampling_strategy: end_back_pmf
+  sigma1_coord: 0.03
+  t_min: 0.0001
+  use_discrete_t: true
+exp_name: structtoken_bfn
+logging_level: warning
+no_wandb: false
+project_name: root_bfn_peptide
+revision: r0
+seed: 1234
+train:
+  accum_grad: 1
+  batch_size: 8
+  ckpt_freq: 10
+  ema_decay: 0.999
+  epochs: 50
+  loss_weights:
+    aa_aux_loss: 0.5
+    bb_atom_loss: 0
+    rot_loss: 0.1
+    structure_decode_loss: 1.0
+    token_bfn_loss: 1.0
+    trans_loss: 1.0
+  max_grad_norm: Q
+  normalizer_dict:
+    pos: 5.0
+  num_workers: 16
+  optimizer:
+    beta1: 0.95
+    beta2: 0.999
+    lr: 0.0005
+    type: adam
+    weight_decay: 0
+  resume: false
+  scheduler:
+    factor: 0.6
+    max_iters: 20000
+    min_lr: 1.0e-06
+    patience: 10
+    type: plateau
+  val_freq: 2
+  val_sample_steps: 100
+use_tblogger: true
+wandb_resume_id: null

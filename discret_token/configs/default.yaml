@@ -1,0 +1,134 @@
+project_name: &_project_name !ENV "${LOGNAME}_bfn_peptide"
+exp_name: &_exp_name !SUB ${exp_name}
+revision: &_revision !SUB ${revision}
+no_wandb: !SUB ${no_wandb}
+wandb_resume_id: !SUB ${wandb_resume_id}
+use_tblogger: !SUB ${use_tblogger}
+logging_level: !SUB ${logging_level}
+seed: !SUB ${seed}
+
+
+#model
+dynamics:
+  t_min: !SUB ${t_min}
+  sigma1_coord: !SUB ${sigma1_coord}
+  lambda1_rot: !SUB ${lambda1_rot}
+  beta1_token: !SUB ${beta1_token}
+  use_discrete_t: !SUB ${use_discrete_t}
+  discrete_steps: !SUB ${discrete_steps}
+  destination_prediction: !SUB ${destination_prediction}
+  sampling_strategy: !SUB ${sampling_strategy}
+
+  model:
+    encoder:
+      node_embed_size: 128
+      edge_embed_size: 64
+      ipa:
+        c_s: 128
+        c_z: 64
+        c_hidden: 128
+        no_heads: 8
+        no_qk_points: 8
+        no_v_points: 12
+        seq_tfmr_num_heads: 4
+        seq_tfmr_num_layers: 2
+        num_blocks: 6
+        stop_grad: False
+    interpolant:
+      min_t: 1.e-2
+      t_normalization_clip: 0.9
+      sample_trans: True
+      sample_rots: True
+      sample_tokens: True
+      rots:
+        train_schedule: linear
+        sample_schedule: exp
+        exp_rate: 10
+      trans:
+        train_schedule: linear
+        sample_schedule: linear
+        sigma: 1.0
+      sampling:
+        num_timesteps: 100
+      self_condition: False
+    tokenizer_bridge:
+      checkpoint_path: !SUB ${tokenizer_checkpoint_path:-}
+      model:
+        use_local_frame: True
+        use_residue_type: False
+        use_atom_slot: False
+        use_atom_class: False
+        compression_factor: 1
+        latent_dim: 128
+        model_dim: 128
+        encoder_layers: 4
+        decoder_layers: 6
+        bidirectional: True
+        fused_add_norm: False
+        rms_norm: True
+        quantizer_levels: [4, 4, 4, 4, 4, 4]
+      loss:
+        local_mse_weight: 1.0
+        global_mse_weight: 1.0
+        intra_residue_distance_weight: 0.5
+        bond_length_weight: 0.0
+        bond_angle_weight: 0.0
+        clash_weight: 0.0
+
+accounting:
+  logdir: &_logdir !PATHJOIN ["./logs/", *_project_name, *_exp_name, *_revision]
+  dump_config_path: !PATHJOIN [*_logdir, "config.yaml"]
+  wandb_logdir: *_logdir
+  tb_logdir: !PATHJOIN [*_logdir, "tensorboard"]
+  checkpoint_dir: !PATHJOIN [*_logdir, "checkpoints"]
+  generated_pep_dir: !PATHJOIN [*_logdir, "generated_pep"]
+  val_outputs_dir: !PATHJOIN [*_logdir, "val_outputs"]
+  test_outputs_dir: !PATHJOIN [*_logdir, "test_outputs"]
+
+
+data:
+  train:
+    type: peprec
+    structure_dir: ../data/pepsage/crude
+    dataset_dir: ../data/pepsage/processed
+    name: pep_pocket_train
+    reset: False
+  val:
+    type: peprec
+    structure_dir: ../data/pepsage/crude
+    dataset_dir: ../data/pepsage/processed
+    name: pep_pocket_test
+    reset: False
+
+train:
+  loss_weights:
+      trans_loss: 1.0
+      rot_loss: 0.1
+      token_bfn_loss: 1.0
+      aa_aux_loss: 0.5
+      structure_decode_loss: 1.0
+      bb_atom_loss: 0
+  batch_size: !SUB ${batch_size}
+  num_workers: 16
+  val_freq: 2
+  val_sample_steps: 100
+  epochs: !SUB ${epochs}
+  resume: !SUB ${resume}
+  ckpt_freq: 10
+  max_grad_norm: !SUB ${max_grad_norm}
+  accum_grad: 1
+  optimizer:
+    type: "adam"
+    lr: !SUB ${lr}
+    weight_decay: !SUB ${weight_decay}
+    beta1: 0.95
+    beta2: 0.999
+  scheduler:
+    type: !SUB ${scheduler}
+    factor: 0.6
+    patience: 10
+    min_lr: 1.e-6
+    max_iters: 20000
+  ema_decay: 0.999
+  normalizer_dict:
+    pos: !SUB ${pos_normalizer}
