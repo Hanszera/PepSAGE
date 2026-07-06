@@ -1,33 +1,3 @@
-# Discrete Token Peptide Generation
-
-This directory contains the pepsage training, sampling, and evaluation code. The main entry point is `train_sage.py`.
-
-The pipeline has three stages:
-
-1. Train or prepare a local-frame tokenizer checkpoint.
-2. Train the `discret_token` / pepsage model with the frozen tokenizer.
-3. Run `test_only` sampling and evaluate the generated PDB files.
-
-## Required Checkpoints
-
-This project depends on two different checkpoints:
-
-- **Tokenizer checkpoint**: produced by `local_frame_struct_tokenizer`.
-- **pepsage checkpoint**: produced by `discret_token/train_sage.py`.
-
-The tokenizer checkpoint is loaded by `core/models/tokenizer_bridge.py` before pepsage training or testing. If this path is missing or points to a different checkpoint, the discrete token targets will change and the results will not be reproducible.
-
-Example tokenizer checkpoint on this machine:
-
-```text
-PepSAGE\local_frame_struct_tokenizer\outputs\exp1_local_frame_tokenizer\compression\local_no_type_k1\pepsage\checkpoints\last.ckpt
-```
-
-Example pepsage checkpoint in this directory:
-
-```text
-PepSAGE\discret_token\output\checkpoints\last.ckpt
-```
 
 ## Training
 
