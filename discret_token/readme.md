@@ -103,7 +103,7 @@ python evaluate_atom_metrics.py --root_dir output --num_samples 64
 - `test_only` does not automatically run all evaluation scripts. It generates samples and PDB files; run the evaluation scripts separately unless the corresponding callback is enabled in `train_sage.py`.
 - The `output/config.yaml` file may contain machine-specific absolute paths. Update them before reproducing on another machine.
 - If `--tokenizer_checkpoint_path` is omitted during training, the tokenizer bridge may use a randomly initialized tokenizer, which makes the training target unreliable.
-- Several scripts contain legacy server paths such as `/data10/java/CH`; update paths or run from the original environment if needed.
+- Several scripts contain legacy server paths such as `/data10/java`; update paths or run from the original environment if needed.
 
 ## Downloads
 

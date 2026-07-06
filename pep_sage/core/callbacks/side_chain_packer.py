@@ -89,7 +89,7 @@ if __name__ == "__main__":
         epilog="run rosetta fixed backbone packing protocl",
         formatter_class=ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("--root_dir", default="/data10/java/CH/logs/transnorm5_seqs_rots_torus", help="root directory for data loading", type=str)
+    parser.add_argument("--root_dir", default="/data10/java/logs/transnorm5_seqs_rots_torus", help="root directory for data loading", type=str)
     parser.add_argument("--threads", type=int, default=11)
     parser.add_argument("--n_decoys", type=int, default=1)
     args = parser.parse_args()

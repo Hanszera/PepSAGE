@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.append("/data10/java/CH")
+sys.path.append("/data10/java")
 import pytorch_lightning as pl
 import numpy as np
 import torch

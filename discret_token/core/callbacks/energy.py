@@ -54,7 +54,7 @@ def run_rosetta_batch(args, num_workers=32):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run Rosetta batch processing")
-    parser.add_argument('--root_dir', help='PDB file paths', default='/data10/java/CH/logs/transnorm5_seqs_rots')
+    parser.add_argument('--root_dir', help='PDB file paths', default='/data10/java/logs/transnorm5_seqs_rots')
     parser.add_argument('--num_workers', help='Number of worker processes', type=int, default=16)
     parser.add_argument('--rank', help='Rank of the process', type=int, default=0)
     parser.add_argument('--world_size', help='Total number of processes', type=int, default=11)

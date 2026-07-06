@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.append("/data10/java/CH")
+sys.path.append("/data10/java")
 import pytorch_lightning as pl
 import numpy as np
 import torch
@@ -180,7 +180,7 @@ class EvalPep(Callback):
             
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--root_dir", type=str, default='/data10/java/CH/logs/transnorm5_seqs_rots_torus')
+    parser.add_argument("--root_dir", type=str, default='/data10/java/logs/transnorm5_seqs_rots_torus')
     parser.add_argument("--num_samples", type=int, default=10)
     parser.add_argument("--sc_packing", action='store_true')
     parser.add_argument("--pep_dir", type=str, default=None)
