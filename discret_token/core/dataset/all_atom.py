@@ -68,30 +68,19 @@ def torsion_angles_to_frames(
         All 8 frames corresponding to each torsion frame.
 
     """
-    # [*, N, 8, 4, 4]
+
     with torch.no_grad():
         default_4x4 = DEFAULT_FRAMES.to(aatype.device)[aatype, ...]  # type: ignore [attr-defined]
 
-    # [*, N, 8] transformations, i.e.
-    #   One [*, N, 8, 3, 3] rotation matrix and
-    #   One [*, N, 8, 3]    translation matrix
+
     default_r = r.from_tensor_4x4(default_4x4)  # type: ignore [attr-defined]
 
     bb_rot = alpha.new_zeros((*((1,) * len(alpha.shape[:-1])), 2))
     bb_rot[..., 1] = 1
 
-    # [*, N, 8, 2]
     alpha = torch.cat([bb_rot.expand(*alpha.shape[:-2], -1, -1), alpha], dim=-2)
 
-    # [*, N, 8, 3, 3]
-    # Produces rotation matrices of the form:
-    # [
-    #   [1, 0  , 0  ],
-    #   [0, a_2,-a_1],
-    #   [0, a_1, a_2]
-    # ]
-    # This follows the original code rather than the supplement, which uses
-    # different indices.
+
 
     all_rots = alpha.new_zeros(default_r.get_rots().get_rot_mats().shape)
     all_rots[..., 0, 0] = 1
@@ -162,13 +151,13 @@ def frames_to_atom14_pos(
         frame_atom_mask = ATOM_MASK.to(aatype.device)[aatype, ...].unsqueeze(-1)  # type: ignore [attr-defined]
         frame_null_pos = IDEALIZED_POS.to(aatype.device)[aatype, ...]  # type: ignore [attr-defined]
 
-    # [*, N, 14, 8]
+
     t_atoms_to_global = r[..., None, :] * group_mask  # type: ignore [index]
 
-    # [*, N, 14]
+
     t_atoms_to_global = t_atoms_to_global.map_tensor_fn(lambda x: torch.sum(x, dim=-1))
 
-    # [*, N, 14, 3]
+
     pred_positions = t_atoms_to_global.apply(frame_null_pos)
     pred_positions = pred_positions * frame_atom_mask
 
@@ -180,7 +169,7 @@ def compute_backbone(bb_rigids, psi_torsions):
         psi_torsions[..., None, :], tuple([1 for _ in range(len(bb_rigids.shape))]) + (7, 1)
     )
     aatype = torch.zeros(bb_rigids.shape, device=bb_rigids.device).long()
-    # aatype = torch.zeros(bb_rigids.shape).long().to(bb_rigids.device)
+
     all_frames = torsion_angles_to_frames(
         bb_rigids,
         torsion_angles,
@@ -188,8 +177,7 @@ def compute_backbone(bb_rigids, psi_torsions):
     )
     atom14_pos = frames_to_atom14_pos(all_frames, aatype)
     atom37_bb_pos = torch.zeros(bb_rigids.shape + (37, 3), device=bb_rigids.device)
-    # atom14 bb order = ['N', 'CA', 'C', 'O', 'CB']
-    # atom37 bb order = ['N', 'CA', 'C', 'CB', 'O']
+
     atom37_bb_pos[..., :3, :] = atom14_pos[..., :3, :]
     atom37_bb_pos[..., 3, :] = atom14_pos[..., 4, :]
     atom37_bb_pos[..., 4, :] = atom14_pos[..., 3, :]

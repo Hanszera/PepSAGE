@@ -1,21 +1,21 @@
 # Discrete Token Peptide Generation
 
-This directory contains the StructToken-BFN training, sampling, and evaluation code. The main entry point is `train_sage.py`.
+This directory contains the pepsage training, sampling, and evaluation code. The main entry point is `train_sage.py`.
 
 The pipeline has three stages:
 
 1. Train or prepare a local-frame tokenizer checkpoint.
-2. Train the `discret_token` / StructToken-BFN model with the frozen tokenizer.
+2. Train the `discret_token` / pepsage model with the frozen tokenizer.
 3. Run `test_only` sampling and evaluate the generated PDB files.
 
-## 1. Required Checkpoints
+## Required Checkpoints
 
 This project depends on two different checkpoints:
 
 - **Tokenizer checkpoint**: produced by `local_frame_struct_tokenizer`.
-- **StructToken-BFN checkpoint**: produced by `discret_token/train_sage.py`.
+- **pepsage checkpoint**: produced by `discret_token/train_sage.py`.
 
-The tokenizer checkpoint is loaded by `core/models/tokenizer_bridge.py` before StructToken-BFN training or testing. If this path is missing or points to a different checkpoint, the discrete token targets will change and the results will not be reproducible.
+The tokenizer checkpoint is loaded by `core/models/tokenizer_bridge.py` before pepsage training or testing. If this path is missing or points to a different checkpoint, the discrete token targets will change and the results will not be reproducible.
 
 Example tokenizer checkpoint on this machine:
 
@@ -23,13 +23,13 @@ Example tokenizer checkpoint on this machine:
 PepSAGE\local_frame_struct_tokenizer\outputs\exp1_local_frame_tokenizer\compression\local_no_type_k1\pepsage\checkpoints\last.ckpt
 ```
 
-Example StructToken-BFN checkpoint in this directory:
+Example pepsage checkpoint in this directory:
 
 ```text
 PepSAGE\discret_token\output\checkpoints\last.ckpt
 ```
 
-## 2. Training
+## Training
 
 Enter the project directory:
 
@@ -63,9 +63,9 @@ logs/<project_name>/<exp_name>/<revision>/config.yaml
 logs/<project_name>/<exp_name>/<revision>/checkpoints/last.ckpt
 ```
 
-## 3. `test_only` Sampling
+## `test_only` Sampling
 
-The `test_only` mode loads a trained StructToken-BFN checkpoint and generates peptide samples.
+The `test_only` mode loads a trained pepsage checkpoint and generates peptide samples.
 
 Before running `test_only`, make sure the config file contains a valid tokenizer checkpoint path:
 
@@ -102,10 +102,10 @@ sample_63.pdb
 ```
 
 
-## 7. End-to-End Reproduction Checklist
+## End-to-End Reproduction Checklist
 
 1. Confirm the tokenizer checkpoint exists.
-2. Confirm the StructToken-BFN checkpoint exists.
+2. Confirm the pepsage checkpoint exists.
 3. Confirm the config file points to the correct tokenizer checkpoint.
 4. Run `test_only` to generate `.pt` trajectories and PDB files.
 5. Run `core/callbacks/evaluate.py` for main peptide-level metrics.
@@ -128,9 +128,13 @@ python train_eval_other.py --root_dir output --num_samples 64
 python evaluate_atom_metrics.py --root_dir output --num_samples 64
 ```
 
-## 8. Notes
+## Notes
 
 - `test_only` does not automatically run all evaluation scripts. It generates samples and PDB files; run the evaluation scripts separately unless the corresponding callback is enabled in `train_sage.py`.
 - The `output/config.yaml` file may contain machine-specific absolute paths. Update them before reproducing on another machine.
 - If `--tokenizer_checkpoint_path` is omitted during training, the tokenizer bridge may use a randomly initialized tokenizer, which makes the training target unreliable.
 - Several scripts contain legacy server paths such as `/data10/java/CH`; update paths or run from the original environment if needed.
+
+## Downloads
+
+The pretrained checkpoints can be downloaded from xxx. The original raw data can be downloaded from xxx.

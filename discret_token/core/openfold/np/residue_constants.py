@@ -957,7 +957,6 @@ restype_1to3 = {
 # to the same one letter name (including 'X' and 'U' which we don't use here).
 restype_3to1 = {v: k for k, v in restype_1to3.items()}
 
-# Define a restype name for all unknown residues.
 unk_restype = "UNK"
 
 resnames = [restype_1to3[r] for r in restypes] + [unk_restype]

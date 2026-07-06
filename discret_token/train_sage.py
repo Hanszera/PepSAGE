@@ -25,17 +25,16 @@ from pytorch_lightning import seed_everything
 from absl import logging
 import torch.distributed as dist
 from absl import logging as absl_logging
-import logging as std_logging  # Python 标准库
+import logging as std_logging  
 
-# 1. 定义 rank‐zero 过滤器，只让 rank 0 输出
+
 class RankZeroFilter(std_logging.Filter):
     def filter(self, record):
-        # 未初始化（单卡）或是 rank0 时返回 True，其它 rank 返回 False
+
         return (not dist.is_available() 
                 or not dist.is_initialized() 
                 or dist.get_rank() == 0)
 
-# 2. 拿到 absl 的底层 python handler，然后加上 filter
 absl_handler = absl_logging.get_absl_handler().python_handler
 absl_handler.addFilter(RankZeroFilter())
 from pytorch_lightning.utilities import rank_zero_only
@@ -45,18 +44,15 @@ def print_(message):
     print(message)
     
 def get_dataloader(cfg, args):
-    # Data
+
     logging.info('Loading datasets...')
     train_dataset = PepDataset(structure_dir=cfg.data.train.structure_dir, dataset_dir=cfg.data.train.dataset_dir,
                                             name=cfg.data.train.name, transform=None, reset=cfg.data.train.reset)
     val_dataset = PepDataset(structure_dir=cfg.data.val.structure_dir, dataset_dir=cfg.data.val.dataset_dir,
                                             name=cfg.data.val.name, transform=None, reset=cfg.data.val.reset)
-    # train_dataset = Subset(train_dataset, range(16))
-    # val_dataset = Subset(val_dataset, range(20))
+
     train_loader = DataLoader(train_dataset, batch_size=cfg.train.batch_size, shuffle=True, collate_fn=PaddingCollate(), num_workers=cfg.train.num_workers, pin_memory=True)
     if "test_only" in args:
-        # for testing, use batch_size=1
-        # val_loader = DataLoader(Subset(val_dataset, [0,1,2]), batch_size=1, shuffle=False, collate_fn=PaddingCollate(eight=False), num_workers=1)
         val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, collate_fn=PaddingCollate(eight=False), num_workers=1)
     else:
         val_loader = DataLoader(val_dataset, batch_size=cfg.train.batch_size, shuffle=False, collate_fn=PaddingCollate(), num_workers=cfg.train.num_workers)
@@ -108,14 +104,14 @@ def get_logger(cfg):
                 save_dir=cfg.accounting.wandb_logdir,
                 resume='must',
             )
-        else: # start a new run
+        else: 
             logger = WandbLogger(
                 name=f"{cfg.exp_name}_{cfg.revision}"
                 + f'_{datetime.datetime.now(pytz.timezone("Asia/Shanghai")).strftime("%Y-%m-%d-%H:%M:%S")}',
                 project=cfg.project_name,
                 offline=cfg.no_wandb,
                 save_dir=cfg.accounting.wandb_logdir,
-            )  # add wandb parameters
+            )  
     return logger
 
 
@@ -230,7 +226,7 @@ if __name__ == "__main__":
             ),
             EMA(decay=cfg.train.ema_decay),
             ConsPep(cfg),
-            # EvalPep(cfg)
+
         ],
     )
     if "test_only" not in _args:
@@ -240,8 +236,4 @@ if __name__ == "__main__":
             trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
     else:
         trainer.test(model, dataloaders=val_loader, ckpt_path=_args.test_ckpt_path)
-        # eval process
-        # root_dir = os.path.dirname(_args.config_file)
-        # log_path = os.path.join(root_dir, "eval.log")
-        # cmd = f"bash train_eval.sh {root_dir} > {log_path} 2>&1"
-        # subprocess.run(cmd, shell=True, check=True)
+

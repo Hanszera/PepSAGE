@@ -44,7 +44,7 @@ def uniform_so3(num_batch, num_res, device='cpu'):
     ).reshape(num_batch, num_res, 3, 3)
 
 def axis_angle_to_matrix(axis, theta):
-    """将轴角转换为旋转矩阵（支持批量）"""
+
     axis = axis / axis.norm(dim=-1, keepdim=True)
     K = torch.zeros(*axis.shape[:-1], 3, 3, device=axis.device)
     K[..., 0, 1] = -axis[..., 2]
@@ -59,7 +59,7 @@ def axis_angle_to_matrix(axis, theta):
     return R
 
 def uniform_SO3_torch(n, device='cpu'):
-    """Shoemake算法采样均匀旋转矩阵 [n,3,3]"""
+
     u1, u2, u3 = torch.rand(3, n, device=device)
     q1 = torch.sqrt(1 - u1) * torch.sin(2 * math.pi * u2)
     q2 = torch.sqrt(1 - u1) * torch.cos(2 * math.pi * u2)
@@ -80,7 +80,7 @@ def uniform_SO3_torch(n, device='cpu'):
     return R
 
 def exp_so3(omega):
-    """指数映射: so(3) -> SO(3), omega: [N,3]"""
+
     theta = torch.norm(omega, dim=1, keepdim=True) + 1e-12
     k = omega / theta
     K = torch.zeros((omega.shape[0], 3, 3), device=omega.device)
@@ -91,16 +91,13 @@ def exp_so3(omega):
     return I + sin_term + cos_term
 
 def sample_matrix_fisher_torch(lambda_val, device='cpu'):
-    """
-    从 Matrix Fisher M(λI) 采样 (混合方法: 小 λ 拒绝采样, 大 λ 李代数近似)
-    返回: R_samples [N,3,3]
-    """
+
     B, T = lambda_val.shape
     N = B * T
     
     small_lambda = (lambda_val<26).numel()
     if small_lambda > 0:
-        # 拒绝采样
+
         N_s = small_lambda
         lambda_val_s = lambda_val[lambda_val<26].flatten()
         samples = []
@@ -131,58 +128,17 @@ def sample_matrix_fisher_torch(lambda_val, device='cpu'):
     return R_samples_small
 
 
-# def sample_matrix_fisher_torch(lambda_tensor, device='cpu'):
-#     """
-#     从 Matrix Fisher 分布中采样（F = λI），支持 λ ∈ ℝ^{B×T}
-    
-#     参数:
-#     lambda_tensor (torch.Tensor): shape [B, T], 每个位置一个 λ ∈ [0, 50]
-#     device (str): 'cuda' 或 'cpu'
-    
-#     返回:
-#     R: [B, T, 3, 3] 的旋转矩阵张量
-#     """
-#     B, T = lambda_tensor.shape
-#     N = B * T
-
-#     # 展平为 [N] 后进行采样
-#     lambda_flat = lambda_tensor.reshape(-1)  # [N]
-
-#     # 构造每个样本的 F = λ * I
-#     eye = torch.eye(3, device=device).unsqueeze(0)       # [1, 3, 3]
-#     F_all = lambda_flat.view(-1, 1, 1) * eye              # [N, 3, 3]
-
-#     # 加入标准正态扰动 Z
-#     Z = torch.randn(N, 3, 3, device=device)              # [N, 3, 3]
-#     M = F_all + Z                                        # [N, 3, 3]
-
-#     # 对每个矩阵做 SVD
-#     U, _, Vh = torch.linalg.svd(M, full_matrices=False)  # [N, 3, 3]
-
-#     # 构造 R = UV^T
-#     R = torch.bmm(U, Vh)                                # [N, 3, 3]
-
-#     # 调整 det(R) == +1
-#     det = torch.linalg.det(R)
-#     mask = det < 0
-#     if mask.any():
-#         U[mask, :, -1] *= -1
-#         R = torch.bmm(U, Vh)
-
-#     # 恢复原来的形状 [B, T, 3, 3]
-#     return R.view(B, T, 3, 3)
-
     
 from scipy.spatial.transform import Rotation
 import numpy as np
 import torch
 
 def normal_so3(num_batch, num_res, std=1.0, device='cpu'):
-    # 从标准正态分布采样李代数向量（so(3) 的对数映射）
+
     log_rot = np.random.normal(loc=0.0, scale=std, size=(num_batch * num_res, 3))
-    # 转换为旋转矩阵
+
     rot = Rotation.from_rotvec(log_rot).as_matrix()  # (N, 3, 3)
-    # 转换为 torch tensor
+
     return torch.tensor(rot, device=device, dtype=torch.float32).reshape(num_batch, num_res, 3, 3)
 
 
@@ -690,86 +646,6 @@ class SampleIGSO3(BaseSampleSO3):
 class SampleUSO3:
     def sample(self, sigma: torch.Tensor, num_samples: int):
         return torch.tensor(Rotation.random(num_samples).as_matrix(), dtype=torch.float32)
-
-# class SampleUSO3(BaseSampleSO3):
-#     so3_type = "uso3"  # cache basename
-
-#     def __init__(
-#         self,
-#         num_omega: int,
-#         sigma_grid: torch.Tensor,
-#         omega_exponent: int = 3,
-#         tol: float = 1e-7,
-#         interpolate: bool = True,
-#         cache_dir: Optional[str] = None,
-#         overwrite_cache: bool = False,
-#     ) -> None:
-#         """
-#         Module for sampling rotations from the USO(3) distribution. Can be used to generate initial
-#         unbiased samples in the reverse process.  Samples are created using inverse transform
-#         sampling based on the associated cumulative probability distribution function (CDF) and a
-#         uniform distribution [0,1] as described in [#leach2022_4]_. CDF values are obtained by
-#         numerically integrating the probability distribution evaluated on a grid of angles and noise
-#         levels and stored in a lookup table.  Linear interpolation is used to approximate continuos
-#         sampling of the function. Angles are discretized in an interval [0,pi] and the grid can be
-#         squashed to have higher resolutions at low angles by taking different powers.
-#         Since sampling relies on tabulated values of the CDF and indexing in the form of
-#         `torch.bucketize`, gradients are not supported.
-
-#         Args:
-#             num_omega (int): Number of discrete angles used for generating the lookup table.
-#             sigma_grid (torch.Tensor): Grid of IGSO3 std devs.
-#             omega_exponent (int, optional): Make the angle grid denser for smaller angles by taking
-#               its power with the provided number. Defaults to 3.
-#             tol (float, optional): Small value for numerical stability. Defaults to 1e-7.
-#             interpolate (bool, optional): If enables, perform linear interpolation of the angle CDF
-#               to sample angles. Otherwise the closest tabulated point is returned. Defaults to True.
-#             cache_dir: Path to an optional cache directory. If set to None, lookup tables are
-#               computed on the fly.
-#             overwrite_cache: If set to true, existing cache files are overwritten. Can be used for
-#               updating stale caches.
-
-#         References
-#         ----------
-#         .. [#leach2022_4] Leach, Schmon, Degiacomi, Willcocks:
-#            Denoising diffusion probabilistic models on so (3) for rotational alignment.
-#            ICLR 2022 Workshop on Geometrical and Topological Representation Learning. 2022.
-#         """
-#         super().__init__(
-#             num_omega=num_omega,
-#             sigma_grid=sigma_grid,
-#             omega_exponent=omega_exponent,
-#             tol=tol,
-#             interpolate=interpolate,
-#             cache_dir=cache_dir,
-#             overwrite_cache=overwrite_cache,
-#         )
-
-#     def get_sigma_idx(self, sigma: torch.Tensor) -> torch.Tensor:
-#         return torch.zeros_like(sigma).long()
-
-#     def sample_shape(self, num_sigma: int, num_samples: int) -> torch.Tensor:
-#         dummy_sigma = torch.zeros(num_sigma, device=self.sigma_grid.device)
-#         return self.sample(dummy_sigma, num_samples)
-
-#     def expansion_function(
-#         self,
-#         omega_grid: torch.Tensor,
-#         sigma_grid: torch.Tensor,
-#     ) -> torch.Tensor:
-#         """
-#         The probability density function of the uniform SO(3) distribution is the cosine scaling
-#         term (1-cos(omega))/pi which is applied automatically during sampling. This means, it is
-#         sufficient to return a tensor of ones to create the correct USO(3) lookup table.
-
-#         Args:
-#             omega_grid (torch.Tensor): Grid of angle values.
-#             sigma_grid (torch.Tensor): Grid of IGSO3 std devs.
-
-#         Returns:
-#             torch.Tensor: USO(3) distribution for angles discretized on a 2D grid.
-#         """
-#         return torch.ones(1, omega_grid.shape[0], device=omega_grid.device)
 
 
 @torch.no_grad()

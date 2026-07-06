@@ -33,10 +33,6 @@ def save_pdb(data, path=None):
             zip(aa_ch, pos_heavyatom_ch, mask_heavyatom_ch, resseq_ch, icode_ch):
             restype = AA(aa_res.item())
 
-            # print(resseq_ch)
-            # tmp = [str(restype),' ',resseq_res.item(),icode_res]
-            # print(chain_id_ch[0])
-            # print(tmp)
 
 
             builder.init_residue(
@@ -63,7 +59,7 @@ def save_pdb(data, path=None):
     unique_chain_nb = data['chain_nb'].unique().tolist()
     for ch_nb in unique_chain_nb:
         mask = (data['chain_nb'] == ch_nb)
-        # print(mask)
+
         aa = _mask_select(data['aa'], mask)
         pos_heavyatom = _mask_select(data['pos_heavyatom'], mask)
         mask_heavyatom = _mask_select(data['mask_heavyatom'], mask)
@@ -71,12 +67,6 @@ def save_pdb(data, path=None):
         resseq = _mask_select(data['resseq'], mask)
         icode = _mask_select(data['icode'], mask)
 
-        # print(aa.shape)
-        # print(pos_heavyatom.shape)
-        # print(mask_heavyatom.shape)
-        # print(chain_id)
-        # print(resseq.shape)
-        # print(icode)
 
         _build_chain(builder, aa, pos_heavyatom, mask_heavyatom, chain_id, resseq, icode)
     

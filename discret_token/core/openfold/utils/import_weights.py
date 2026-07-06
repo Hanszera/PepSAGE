@@ -434,16 +434,13 @@ def import_jax_weights_(model, npz_path, version="model_1"):
     # Flatten keys and insert missing key prefixes
     flat = _process_translations_dict(translations)
 
-    # Sanity check
+
     keys = list(data.keys())
     flat_keys = list(flat.keys())
     incorrect = [k for k in flat_keys if k not in keys]
     missing = [k for k in keys if k not in flat_keys]
-    # print(f"Incorrect: {incorrect}")
-    # print(f"Missing: {missing}")
+
 
     assert len(incorrect) == 0
-    # assert(sorted(list(flat.keys())) == sorted(list(data.keys())))
 
-    # Set weights
     assign(flat, data)

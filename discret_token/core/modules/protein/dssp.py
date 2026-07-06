@@ -67,36 +67,13 @@ def make_dssp_dict(handle):
         if ss == " ":
             ss = "-"
         try:
-            # NH_O_1_relidx = int(l[38:45])
-            # NH_O_1_energy = float(l[46:50])
-            # O_NH_1_relidx = int(l[50:56])
-            # O_NH_1_energy = float(l[57:61])
-            # NH_O_2_relidx = int(l[61:67])
-            # NH_O_2_energy = float(l[68:72])
-            # O_NH_2_relidx = int(l[72:78])
-            # O_NH_2_energy = float(l[79:83])
-
             acc = int(l[34:38])
             phi = float(l[103:109])
             psi = float(l[109:115])
         except ValueError as exc:
-            # DSSP output breaks its own format when there are >9999
-            # residues, since only 4 digits are allocated to the seq num
-            # field.  See 3kic chain T res 321, 1vsy chain T res 6077.
-            # Here, look for whitespace to figure out the number of extra
-            # digits, and shift parsing the rest of the line by that amount.
+
             if l[34] != " ":
                 shift = l[34:].find(" ")
-
-                # NH_O_1_relidx = int(l[38 + shift : 45 + shift])
-                # NH_O_1_energy = float(l[46 + shift : 50 + shift])
-                # O_NH_1_relidx = int(l[50 + shift : 56 + shift])
-                # O_NH_1_energy = float(l[57 + shift : 61 + shift])
-                # NH_O_2_relidx = int(l[61 + shift : 67 + shift])
-                # NH_O_2_energy = float(l[68 + shift : 72 + shift])
-                # O_NH_2_relidx = int(l[72 + shift : 78 + shift])
-                # O_NH_2_energy = float(l[79 + shift : 83 + shift])
-
                 acc = int(l[34 + shift : 38 + shift])
                 phi = float(l[103 + shift : 109 + shift])
                 psi = float(l[109 + shift : 115 + shift])
@@ -138,11 +115,10 @@ def find_sstruct_ranges(chain_dict, min_length=5):
 
 def find_loop_fragments(chain_dict, min_length=3, max_length=float('inf')):
     ss_ranges = find_sstruct_ranges(chain_dict)
-    # print(ss_ranges)
+
     fragments_all = []
     index_to_reskey = list(chain_dict.keys())
-    # for s, e in ss_ranges:
-    #     print(index_to_reskey[s], index_to_reskey[e])
+
 
     for rng_l, rng_r in zip(ss_ranges[:-1], ss_ranges[1:]):
         start_l, end_l = rng_l

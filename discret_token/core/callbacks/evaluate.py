@@ -86,10 +86,7 @@ class EvalPep(Callback):
                         'ss_ratio': [],
                         'bind_ratio': [],
                         'novel': [],
-                        # 'affinity': [],
-                        # 'stability': [],
-                        # 'ref_affinity': [],
-                        # 'ref_stability': [],
+
                     }
             for i in range(self.cfg.num_samples):
                 pdb_id_sample = f"sample_{i}.pdb"
@@ -138,10 +135,7 @@ class EvalPep(Callback):
                         'ss_ratio': ss_ratio,
                         'bind_ratio': bind_ratio,
                         'novel': novel,
-                        # 'affinity': rosetta_res['bind'],
-                        # 'stability': rosetta_res['stab'],
-                        # 'ref_affinity': ref_rossetta_res['bind'],
-                        # 'ref_stability': ref_rossetta_res['stab'],
+
                     }
                     for k, v in eval_res[pdb_id].items():
                         eval_res[pdb_id][k].append(obj[k])
@@ -157,11 +151,7 @@ class EvalPep(Callback):
                 "diversity": _summarize_values([div]),
             }
             
-            # eval affinity
-            # t1 = time.time()
-            # ref_rossetta_res = run_rosetta_batch(list(zip(rossetta_path_tmp, [gt_chain_id]*len(rossetta_path_tmp))))
-            # t2 = time.time()
-            # rank_zero_info(f"Processed reference Rosetta score in {t2 - t1:.2f} seconds for {gt_pdb_path}")            
+            
         if 'generated_pep_packsc' in self.pep_dir:
             torch.save(eval_res, os.path.join(self.cfg.accounting.logdir, 'eval_metrics_sc.pt'))
             torch.save(
@@ -189,14 +179,13 @@ class EvalPep(Callback):
             self.eval_metric()
             
 if __name__ == "__main__":
-    # NOTE: This is a standalone script for side chain packing purposes.
     parser = argparse.ArgumentParser()
-    parser.add_argument("--root_dir", type=str, default='/data10/java/CH/logs/qianhao_bfn_peptide/debug/transnorm5_seqs_rots_torus')
+    parser.add_argument("--root_dir", type=str, default='/data10/java/CH/logs/transnorm5_seqs_rots_torus')
     parser.add_argument("--num_samples", type=int, default=10)
     parser.add_argument("--sc_packing", action='store_true')
     parser.add_argument("--pep_dir", type=str, default=None)
     _args = parser.parse_args()
-    # Example usage
+
     from core.config.config import Config
     config_file = os.path.join(_args.root_dir, 'config.yaml')
     cfg = Config(config_file)

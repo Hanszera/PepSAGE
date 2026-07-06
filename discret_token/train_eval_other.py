@@ -74,16 +74,12 @@ class EvalPep(Callback):
         summary_res = {}
         for pdb_id in tqdm(pdb_ids, desc="Evaluating metrics"):
             gt_pdb_path = os.path.join(self.pep_dir, pdb_id, 'gt.pdb')
-            gt_chain_id = pdb_id.split('_')[-3]  # Assuming the chain ID is the last character before the file extension
+            gt_chain_id = pdb_id.split('_')[-3]  
             gt_chain = get_chain_from_pdb(gt_pdb_path, gt_chain_id)
-            # gt_psi, gt_phi = get_psi_chi(gt_pdb_path, gt_chain_id)
+
             eval_res[pdb_id] = {
                         'gt_CA_dist': [],
-                        # 'gt_psi': gt_psi,
-                        # 'gt_phi': gt_phi,
                         'sample_CA_dist': [],
-                        # 'sample_psi': [],
-                        # 'sample_phi': [],
                         'aar':[]
                     }
             eval_res[pdb_id]['gt_CA_dist'].append(get_CA_dist(gt_chain))
@@ -100,15 +96,8 @@ class EvalPep(Callback):
                     except Exception as e:
                         rank_zero_info(f"Error checking peptide validity for {pdb_i_path}: {e}")
                     
-                    # try:
-                    #     sample_psi, sample_phi = get_psi_chi(pdb_i_path, gt_chain_id)
-                    #     eval_res[pdb_id]['sample_psi'].append(sample_psi)
-                    #     eval_res[pdb_id]['sample_phi'].append(sample_phi)
-                    # except Exception as e:
-                    #     rank_zero_info(f"Error calculating psi/phi for {pdb_i_path}: {e}")
-                        
                     try:
-                        # Calculate amino acid ratio (AAR)
+
                         aar = diff_ratio(get_seq(pdb_i_chain), get_seq(gt_chain))
                         eval_res[pdb_id]['aar'].append(aar)
                     except Exception as e:
@@ -145,22 +134,5 @@ class EvalPep(Callback):
             self.eval_metric()
             
 if __name__ == "__main__":
-    # NOTE: This is a standalone script for side chain packing purposes.
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--root_dir", type=str, default='/data10/java/CH/logs/qianhao_bfn_peptide/debug/transnorm5_seqs_rots_torus')
-    parser.add_argument("--num_samples", type=int, default=10)
-    parser.add_argument("--sc_packing", action='store_true', help="Whether to use side chain packing.")
-    parser.add_argument("--pep_dir", type=str, default=None)
-    _args = parser.parse_args()
-    # Example usage
-    from core.config.config import Config
-    config_file = os.path.join(_args.root_dir, 'config.yaml')
-    cfg = Config(config_file)
-    if _args.sc_packing:
-        cfg.accounting.generated_pep_dir = os.path.join(os.path.dirname(cfg.accounting.generated_pep_dir), 'generated_pep_packsc')
-    if _args.pep_dir is not None:
-        cfg.accounting.generated_pep_dir = _args.pep_dir
-    
-    cfg.num_samples = _args.num_samples
-    eval_callback = EvalPep(cfg=cfg)
-    eval_callback.on_test_end(EasyDict({"global_rank": 0}), None)  # Replace with actual trainer and module instances in practice
+
+    pass

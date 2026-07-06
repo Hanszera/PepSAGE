@@ -9,7 +9,7 @@ from Bio import BiopythonWarning, SeqIO
 
 import difflib
 
-# 忽略PDBConstructionWarning
+
 warnings.filterwarnings('ignore', category=BiopythonWarning)
 
 def get_chain_from_pdb(pdb_path, chain_id='A'):
@@ -17,14 +17,12 @@ def get_chain_from_pdb(pdb_path, chain_id='A'):
     structure = parser.get_structure('X', pdb_path)[0]
     for chain in structure:
         if chain.id == chain_id:
-            # print(len(chain))
+
             return chain
     return None
 
 def get_CA_dist(chain):
-    """
-    检查指定链的相邻残基 CA 原子是否距离
-    """
+
     ca_atoms = [res['CA'] for res in chain if 'CA' in res]
     
     dist_arr = []
@@ -34,41 +32,32 @@ def get_CA_dist(chain):
     return np.array(dist_arr)
 
 def get_peptide_valid(chain, threshold=3.8):
-    """
-    检查指定链的相邻残基 CA 原子是否距离均 < threshold。
-    """
+
     ca_atoms = [res['CA'] for res in chain if 'CA' in res]
     
     for i in range(len(ca_atoms) - 1):
         dist = np.linalg.norm(ca_atoms[i].coord - ca_atoms[i + 1].coord)
         if dist > threshold:
-            # print(f"Invalid CA-CA distance between residue {i} and {i+1}: {dist:.2f} Å")
             return False
     return True
 
 def diff_ratio(str1, str2):
-    # str1, str2 = get_seq(chain1), get_seq(chain2)
-    # Create a SequenceMatcher object
+
     seq_matcher = difflib.SequenceMatcher(None, str1, str2)
 
-    # Calculate the difference ratio
+
     return seq_matcher.ratio()
 
 def get_novel(chain1, chain2, tm_thr=0.5, seq_thr=0.5):
-    """
-    判断单条预测多肽是否 Novel:
-      - TM-score ≤ tm_thr
-      - 且 序列相似度(identity) ≤ seq_thr
-    """
+
     if chain1 is None or chain2 is None:
         return False
 
-    # 1) 结构相似度：TM-score
+
     tm = get_tm(chain1, chain2)
     if tm is None or tm > tm_thr:
         return False
 
-    # 2) 序列相似度
     seq_pred = get_seq(chain1)
     seq_ref = get_seq(chain2)
     sid = diff_ratio(seq_pred, seq_ref)
@@ -80,11 +69,7 @@ def get_novel(chain1, chain2, tm_thr=0.5, seq_thr=0.5):
 import itertools
 
 def compute_diversity_avg(chains, seqs):
-    """
-    计算一组多肽的 diversity（平均版）：
-      diversity = (1 / M) * Σ_{i<j} [(1 - TM_score[i,j]) * (1 - seq_identity[i,j])]
-    其中 M = C(N,2) 是总的对数。
-    """
+
     assert len(chains) == len(seqs)
     n = len(chains)
     if n < 2:
@@ -117,26 +102,21 @@ def align_chains(chain1, chain2):
     return reslist1,reslist2
 
 def get_rmsd(chain1, chain2):
-    # chain1 = get_chain_from_pdb(pdb1, chain_id1)
-    # chain2 = get_chain_from_pdb(pdb2, chain_id2)
+
     if chain1 is None or chain2 is None:
         return None
     super_imposer = Superimposer()
-    # pos1 = np.array([atom.get_coord() for atom in chain1.get_atoms() if atom.name == 'CA'])
-    # pos2 = np.array([atom.get_coord() for atom in chain2.get_atoms() if atom.name == 'CA'])
-    # rmsd1 = np.sqrt(np.sum((pos1 - pos2)**2) / len(pos1))
+
     super_imposer.set_atoms([atom for atom in chain1.get_atoms() if atom.name == 'CA'],
                             [atom for atom in chain2.get_atoms() if atom.name == 'CA'])
     rmsd2 = super_imposer.rms
     return rmsd2
 
 def get_tm(chain1,chain2):
-    # chain1 = get_chain_from_pdb(pdb1, chain_id1)
-    # chain2 = get_chain_from_pdb(pdb2, chain_id2)
+
     pos1 = np.array([atom.get_coord() for atom in chain1.get_atoms() if atom.name == 'CA'])
     pos2 = np.array([atom.get_coord() for atom in chain2.get_atoms() if atom.name == 'CA'])
-    tm_results = tmtools.tm_align(pos1, pos2, 'A'*len(pos1), 'A'*len(pos2))
-    # print(dir(tm_results))
+    tm_results = tmtools.tm_al
     return tm_results.tm_norm_chain2
 
 def get_traj_chain(pdb, chain):

@@ -23,14 +23,7 @@ class NodeEmbedder(nn.Module):
             nn.Linear(feat_dim, feat_dim), nn.ReLU(),
             nn.Linear(feat_dim, feat_dim)
         )
-    
-    # def embed_t(self, timesteps, mask):
-    #     timestep_emb = get_time_embedding(
-    #         timesteps[:, 0],
-    #         self.feat_dim,
-    #         max_positions=2056
-    #     )[:, None, :].repeat(1, mask.shape[1], 1)
-    #     return timestep_emb
+
 
     def forward(self, aa, res_nb, chain_nb, pos_atoms, mask_atoms, structure_mask=None, sequence_mask=None):
         """
@@ -92,14 +85,10 @@ class NodeEmbedder(nn.Module):
             )   # Avoid slight data leakage via dihedral angles of anchor residues
             dihed_feat = dihed_feat * dihed_mask[:, :, None]
         
-        # # timestep
-        # timestep_emb = self.embed_t(timesteps, mask_residue)
+
 
         out_feat = self.mlp(torch.cat([aa_feat, crd_feat, dihed_feat], dim=-1)) # (N, L, F)
         out_feat = out_feat * mask_residue[:, :, None]
 
-        # print(f'aa_seq:{aa},aa:{aa_feat},crd:{crd_feat},dihed:{dihed_feat},time:{timestep_emb}')
-
-        # print(f'weight:{self.aatype_embed.weight}') # nan, why?
 
         return out_feat

@@ -527,7 +527,7 @@ def SO3_gaussian(gamma, rotmats_1, rotmats_base=None):
     rotmats_base: [B, 3, 3] base rotations (optional)
     return: interpolated rotations [B, 3, 3]
     """
-    # base为[0,0,0], gamma 一旦>0, 旋转轴突变
+
     if rotmats_base is None:
         rotmats_base = torch.eye(3, device=rotmats_1.device).unsqueeze(0).unsqueeze(0).repeat(rotmats_1.shape[0], rotmats_1.shape[1], 1, 1)
     # Relative rotation in base frame

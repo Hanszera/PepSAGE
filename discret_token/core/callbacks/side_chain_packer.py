@@ -24,8 +24,7 @@ init(
     "-multi_cool_annealer 5 "
     "-no_his_his_pairE "
     "-linmem_ig 1 "
-    # "-mute all"
-    # silent=True
+
 )
 from pyrosetta import init, Pose, get_fa_scorefxn, standard_packer_task, pose_from_file  # noqa
 from pyrosetta.rosetta import core, protocols
@@ -56,17 +55,16 @@ def packer_task(pdb_out, pdb_in, n_decoys=1):
     for _ in range(n_decoys):
         test_pose = Pose()
         test_pose.assign(pose)
-        # packer task
+
         pose_packer = standard_packer_task(test_pose)
         rosetta.core.pack.task.parse_resfile(test_pose, pose_packer, resfile)
         pose_packer.restrict_to_repacking()  # turns off design
-        # pose_packer.or_include_current(True)  # considers original conformation
         packmover = protocols.minimization_packing.PackRotamersMover(scorefxn, pose_packer)
 
-        scorefxn(pose)  # to prevent verbose output on the next line
-        # print("\nPre packing score:", scorefxn(test_pose))
+        scorefxn(pose)  
+
         packmover.apply(test_pose)
-        # print("Post packing score:", scorefxn(test_pose))
+
         score = scorefxn(test_pose)
         if score < best_score:
             best_score = score
@@ -89,7 +87,7 @@ if __name__ == "__main__":
         epilog="run rosetta fixed backbone packing protocl",
         formatter_class=ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("--root_dir", default="/data10/java/CH/logs/qianhao_bfn_peptide/debug/transnorm5_seqs_rots_torus", help="root directory for data loading", type=str)
+    parser.add_argument("--root_dir", default="/data10/java/CH/logs/transnorm5_seqs_rots_torus", help="root directory for data loading", type=str)
     parser.add_argument("--threads", type=int, default=11)
     parser.add_argument("--n_decoys", type=int, default=1)
     args = parser.parse_args()

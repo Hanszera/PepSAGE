@@ -144,9 +144,7 @@ class FlowModel(nn.Module):
         # bb aux loss
         gt_bb_atoms = all_atom.to_atom37(trans_1_c, rotmats_1)[:, :, :3] 
         pred_bb_atoms = all_atom.to_atom37(pred_trans_1_c, pred_rotmats_1)[:, :, :3]
-        # gt_bb_atoms = all_atom.to_bb_atoms(trans_1_c, rotmats_1, angles_1[:,:,0]) # N,CA,C,O,CB
-        # pred_bb_atoms = all_atom.to_bb_atoms(pred_trans_1_c, pred_rotmats_1, pred_angles_1[:,:,0])
-        # print(gt_bb_atoms.shape)
+
         bb_atom_loss = torch.sum(
             (gt_bb_atoms - pred_bb_atoms) ** 2 * gen_mask[..., None, None],
             dim=(-1, -2, -3)
@@ -275,9 +273,9 @@ class FlowModel(nn.Module):
             d_t = (t_2-t_1) * torch.ones((num_batch, 1), device=batch['aa'].device)
             # Euler step
             trans_t_2 = trans_t_1_c + (pred_trans_1_c-trans_0_c)*d_t[...,None]
-            # trans_t_2_c,center = self.zero_center_part(trans_t_2,gen_mask,res_mask)
+
             trans_t_2_c = torch.where(batch['generate_mask'][...,None],trans_t_2,trans_1_c) # move receptor also
-            # rotmats_t_2 = so3_utils.geodesic_t(d_t[...,None] / (1-t[...,None]), pred_rotmats_1, rotmats_t_1)
+
             rotmats_t_2 = so3_utils.geodesic_t(d_t[...,None] * 10, pred_rotmats_1, rotmats_t_1)
             rotmats_t_2 = torch.where(batch['generate_mask'][...,None,None],rotmats_t_2,rotmats_1)
             # angles
@@ -307,7 +305,6 @@ class FlowModel(nn.Module):
         pred_rotmats_1, pred_trans_1, pred_angles_1, pred_seqs_1_prob = self.ga_encoder(t, rotmats_t_1, trans_t_1_c, angles_t_1, seqs_t_1, node_embed, edge_embed, batch['generate_mask'].long(), batch['res_mask'].long())
         pred_rotmats_1 = torch.where(batch['generate_mask'][...,None,None],pred_rotmats_1,rotmats_1)
         # move center
-        # pred_trans_1_c,center = self.zero_center_part(pred_trans_1,gen_mask,res_mask)
         pred_trans_1_c = torch.where(batch['generate_mask'][...,None],pred_trans_1,trans_1_c) # move receptor also
         # angles
         pred_angles_1 = torch.where(batch['generate_mask'][...,None],pred_angles_1,angles_1)
@@ -320,7 +317,7 @@ class FlowModel(nn.Module):
         pred_angles_1 = torch.where(torsion_mask.bool(),pred_angles_1,torch.zeros_like(pred_angles_1))
         if not sample_bb:
             pred_trans_1_c = trans_1_c.detach().clone()
-            # _,center = self.zero_center_part(trans_1,gen_mask,res_mask)
+
             pred_rotmats_1 = rotmats_1.detach().clone()
         if not sample_ang:
             pred_angles_1 = angles_1.detach().clone()

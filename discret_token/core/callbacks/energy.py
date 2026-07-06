@@ -18,7 +18,7 @@ def get_chain_dic(input_pdb):
 
     return chain_dic
 
-# 在子进程刚启动时初始化一次
+
 def init_worker():
     init("-mute all")
     
@@ -54,13 +54,13 @@ def run_rosetta_batch(args, num_workers=32):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run Rosetta batch processing")
-    parser.add_argument('--root_dir', help='PDB file paths', default='/data10/java/CH/logs/qianhao_bfn_peptide/debug/transnorm5_seqs_rots')
+    parser.add_argument('--root_dir', help='PDB file paths', default='/data10/java/CH/logs/transnorm5_seqs_rots')
     parser.add_argument('--num_workers', help='Number of worker processes', type=int, default=16)
     parser.add_argument('--rank', help='Rank of the process', type=int, default=0)
     parser.add_argument('--world_size', help='Total number of processes', type=int, default=11)
     parser.add_argument('--sc_packing', help='If perform side chain packing', action='store_true')
     args = parser.parse_args()
-    # Batch processing example
+
     if args.sc_packing:
         pdb_paths = os.path.join(args.root_dir, 'generated_pep_packsc')
     else:

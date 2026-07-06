@@ -414,13 +414,7 @@ residue_atoms = {
     "VAL": ["C", "CA", "CB", "CG1", "CG2", "N", "O"],
 }
 
-# Naming swaps for ambiguous atom names.
-# Due to symmetries in the amino acids the naming of atoms is ambiguous in
-# 4 of the 20 amino acids.
-# (The LDDT paper lists 7 amino acids as ambiguous, but the naming ambiguities
-# in LEU, VAL and ARG can be resolved by using the 3d constellations of
-# the 'ambiguous' atoms and their neighbours)
-# TODO: ^ interpret this
+
 residue_atom_renaming_swaps = {
     "ASP": {"OD1": "OD2"},
     "GLU": {"OE1": "OE2"},
@@ -967,7 +961,7 @@ restype_1to3 = {
 # to the same one letter name (including 'X' and 'U' which we don't use here).
 restype_3to1 = {v: k for k, v in restype_1to3.items()}
 
-# Define a restype name for all unknown residues.
+
 unk_restype = "UNK"
 
 resnames = [restype_1to3[r] for r in restypes] + [unk_restype]

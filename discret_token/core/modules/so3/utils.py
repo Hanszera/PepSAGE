@@ -741,8 +741,7 @@ def geodesic_t(t: float, mat: torch.Tensor, base_mat: torch.Tensor, rot_vf=None)
     """
     if rot_vf is None:
         rot_vf = rotmat_to_rotvec(rot_mult(rot_transpose(base_mat), mat))
-    # print(f"t:{t.shape},rot_vf:{rot_vf.shape}")
-    # raise ValueError
+
     mat_t = rotvec_to_rotmat(t * rot_vf)
     if base_mat.shape != mat_t.shape:
         raise ValueError(
