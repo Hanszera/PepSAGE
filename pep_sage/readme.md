@@ -107,4 +107,4 @@ python evaluate_atom_metrics.py --root_dir output --num_samples 64
 
 ## Downloads
 
-The pretrained checkpoints can be downloaded from xxx. The original raw data can be downloaded from xxx.
+The pretrained checkpoints can be downloaded from pep_sage\output\pep_sage\checkpoints. The original raw data can be downloaded from xxx.
